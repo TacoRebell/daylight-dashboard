@@ -6,6 +6,8 @@ Built with Next.js 16, deployable via Docker, and configurable through a built-i
 
 ![Dashboard preview](public/bg.jpg)
 
+> Background photo by [Massimiliano Morosinotto](https://unsplash.com/@therawhunter) on [Unsplash](https://unsplash.com/photos/gray-mountain-during-daytime-photo-3i5PHVp1Fkw)
+
 ---
 
 ## Features
