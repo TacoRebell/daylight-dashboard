@@ -1,0 +1,27 @@
+services:
+  daylight:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    volumes:
+      # Persist dashboard config across container restarts
+      - ./config.json:/app/config.json
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "1.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/config"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
