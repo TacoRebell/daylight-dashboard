@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  /* Main Background: Midnight Blue (#0B1121) */
+  --background: #0B1121;
+  --foreground: #ededed;
+
+  /* Card Backgrounds */
+  --card: #0B1121;
+  --card-foreground: #ededed;
+
+  --popover: #0B1121;
+  --popover-foreground: #ededed;
+
+  --primary: #ededed;
+  --primary-foreground: #0B1121;
+
+  --secondary: #1e293b;
+  --secondary-foreground: #ededed;
+
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+
+  --accent: #1e293b;
+  --accent-foreground: #ededed;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ededed;
+
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #e2e8f0;
+}
+
+/* Force dark theme defaults */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Add any custom utility overrides here if needed */

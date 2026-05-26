@@ -1,0 +1,97 @@
+import { WelcomeHeader } from "@/components/WelcomeHeader";
+import { QuoteSection } from "@/components/QuoteSection";
+import { WeatherCard } from "@/components/WeatherCard";
+import { SecondaryClockWeather } from "@/components/SecondaryClockWeather";
+import { VegasEventsCarousel } from "@/components/VegasEventsCarousel";
+import { FamilyGoals } from "@/components/FamilyGoals";
+import { UpcomingEvents } from "@/components/UpcomingEvents";
+import { TodoList } from "@/components/TodoList";
+import { Celebrations } from "@/components/Celebrations";
+import { TripPlanner } from "@/components/TripPlanner";
+import { ConnectivityWidget } from "@/components/ConnectivityWidget";
+import { getFamilyGoals, getQuotes } from "@/lib/sheets";
+import { getAnniversaries, getTrips, getUpcomingEvents } from "@/lib/google";
+import { readConfig } from "@/lib/config";
+
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  const [goals, anniversaries, trips, events, quotes] = await Promise.all([
+    getFamilyGoals(),
+    getAnniversaries(),
+    getTrips(),
+    getUpcomingEvents(),
+    getQuotes()
+  ]);
+
+  const config = readConfig();
+  const { primaryLocation, secondaryLocation, connectivity, events: eventsConfig } = config;
+
+  return (
+    <main className="min-h-screen flex flex-col p-8 pb-20">
+      <div className="max-w-[1600px] mx-auto w-full flex flex-col flex-1">
+
+        {/* Header Section */}
+        <div className="mb-8 flex flex-col items-center gap-6">
+          <WelcomeHeader
+            lat={primaryLocation.lat}
+            lon={primaryLocation.lon}
+            timezone={primaryLocation.timezone}
+          />
+          <div className="w-full">
+            <QuoteSection items={quotes} />
+          </div>
+        </div>
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Column 1 */}
+          <div className="space-y-6">
+            <WeatherCard
+              lat={primaryLocation.lat}
+              lon={primaryLocation.lon}
+              timezone={primaryLocation.timezone}
+              cityName={primaryLocation.name}
+            />
+            {secondaryLocation.enabled && (
+              <SecondaryClockWeather
+                lat={secondaryLocation.lat}
+                lon={secondaryLocation.lon}
+                timezone={secondaryLocation.timezone}
+                cityName={secondaryLocation.name}
+              />
+            )}
+            {connectivity.enabled && (
+              <ConnectivityWidget />
+            )}
+          </div>
+
+          {/* Column 2 */}
+          <div className="space-y-6">
+            <FamilyGoals items={goals} />
+            <TodoList />
+          </div>
+
+          {/* Column 3 */}
+          <div className="space-y-6">
+            <UpcomingEvents items={events} />
+            <Celebrations items={anniversaries} />
+            <TripPlanner items={trips} />
+          </div>
+
+        </div>
+
+        {/* Vegas Events — full width, vertically centered in remaining space */}
+        {eventsConfig.enabled && (
+          <div className="flex-1 flex items-center py-4">
+            <div className="w-full">
+              <VegasEventsCarousel />
+            </div>
+          </div>
+        )}
+
+      </div>
+    </main>
+  );
+}
