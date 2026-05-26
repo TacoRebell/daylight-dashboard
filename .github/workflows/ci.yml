@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          # Provide empty stubs so the build doesn't fail on missing env vars
+          GOOGLE_CLIENT_ID: stub
+          GOOGLE_CLIENT_SECRET: stub
+          GOOGLE_REFRESH_TOKEN: stub
+          GOOGLE_SHEET_ID: stub
+          GOOGLE_CALENDAR_ID_ANNIVERSARY: stub
+          GOOGLE_CALENDAR_ID_TRIPS: stub
+          TICKETMASTER_API_KEY: stub
+          UNIFI_API_KEY: stub
+          ADMIN_PASSWORD: stub
