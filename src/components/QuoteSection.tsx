@@ -12,10 +12,9 @@ export function QuoteSection({ items }: { items: Quote[] }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    // Rotate quote every 10 seconds
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % items.length);
-    }, 10000);
+    }, 3600000);
     return () => clearInterval(timer);
   }, [items.length]);
 

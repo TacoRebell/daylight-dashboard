@@ -30,6 +30,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Install su-exec for privilege dropping in entrypoint
+RUN apk add --no-cache su-exec
+
 # Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -42,14 +45,13 @@ COPY --from=builder /app/.next/static ./.next/static
 # Create cache directory with correct ownership
 RUN mkdir -p .next/cache && chown -R nextjs:nodejs .next
 
-# Set permissions
-USER nextjs
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Expose port 3000
 EXPOSE 3000
 
-# Start command
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["/entrypoint.sh"]

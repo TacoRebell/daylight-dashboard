@@ -8,7 +8,6 @@ import { UpcomingEvents } from "@/components/UpcomingEvents";
 import { TodoList } from "@/components/TodoList";
 import { Celebrations } from "@/components/Celebrations";
 import { TripPlanner } from "@/components/TripPlanner";
-import { ConnectivityWidget } from "@/components/ConnectivityWidget";
 import { getFamilyGoals, getQuotes } from "@/lib/sheets";
 import { getAnniversaries, getTrips, getUpcomingEvents } from "@/lib/google";
 import { readConfig } from "@/lib/config";
@@ -25,7 +24,7 @@ export default async function Home() {
   ]);
 
   const config = readConfig();
-  const { primaryLocation, secondaryLocation, connectivity, events: eventsConfig } = config;
+  const { primaryLocation, secondaryLocation, events: eventsConfig } = config;
 
   return (
     <main className="min-h-screen flex flex-col p-8 pb-20">
@@ -61,9 +60,6 @@ export default async function Home() {
                 timezone={secondaryLocation.timezone}
                 cityName={secondaryLocation.name}
               />
-            )}
-            {connectivity.enabled && (
-              <ConnectivityWidget />
             )}
           </div>
 
