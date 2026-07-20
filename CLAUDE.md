@@ -12,11 +12,11 @@ npm run lint     # Run ESLint
 
 ## Architecture
 
-**Daylight Dashboard** is a Next.js 16 App Router dashboard for wall-mounted displays. It aggregates Google Calendar/Tasks/Sheets, Yahoo Finance, Open-Meteo weather, and optionally UniFi network data and Ticketmaster events.
+**Daylight Dashboard** is a Next.js 16 App Router dashboard for wall-mounted displays. It aggregates Google Calendar/Tasks/Sheets, Yahoo Finance, Open-Meteo weather, and optionally pi-monitor-proxied network stats and Ticketmaster events.
 
 ### Data flow
 
-`page.tsx` is a **server component** that calls `lib/` functions directly in a `Promise.all` and passes data as props to client components. It also calls `readConfig()` to read `config.json` and passes location/feature flags as props.
+`page.tsx` is a **server component** that calls `lib/` functions directly in a `Promise.all` (calendar events, anniversaries, trips, family goals, quotes) and passes the results as props to client components — including `MonthlyCalendar`, which renders that same events/celebrations/trips data as a month grid rather than fetching independently. It also calls `readConfig()` to read `config.json` and passes location/feature flags as props — including the optional secondary and tertiary locations.
 
 `layout.tsx` calls `getStocks()` which reads stock symbols from `config.json` via `readConfig()`.
 
@@ -47,4 +47,5 @@ User preferences (location, enabled features, stock symbols) live in `config.jso
 - **Weather**: Open-Meteo API — free, no key required, returns timezone alongside coordinates from geocoding API.
 - **ISR**: `revalidate = 300` on `layout.tsx` — this still matters for `/admin` and `/admin/login`, which are static ISR pages that inherit it (the layout renders `StockTicker` on every route). `page.tsx` itself is `force-dynamic` since config is read at request time, which overrides the layout's revalidate for `/` specifically.
 - **OLED protection**: `ScreenWipe` flashes a full-screen black overlay every 5–10 minutes.
-- **Hydration safety**: Components using `new Date()` return a placeholder div until after mount.
+- **Hydration safety**: Components that can't know their value until after mount (`new Date()`, a `localStorage` cache read) return a placeholder div, or set state in an effect with a `react-hooks/set-state-in-effect` disable comment explaining why — see `MonthlyCalendar` and `VegasEventsCarousel`.
+- **Node version**: requires Node ≥22 (`yahoo-finance2`'s minimum supported runtime) — pinned in the Dockerfile and CI's `setup-node`. Don't downgrade without also patching around that warning.
