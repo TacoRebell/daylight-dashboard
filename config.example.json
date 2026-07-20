@@ -1,6 +1,6 @@
 {
   "primaryLocation": {
-    "name": "New York, New York",
+    "name": "New York",
     "country": "US",
     "lat": 40.7128,
     "lon": -74.006,
@@ -14,19 +14,24 @@
     "lon": 0,
     "timezone": ""
   },
+  "tertiaryLocation": {
+    "enabled": false,
+    "name": "",
+    "country": "",
+    "lat": 0,
+    "lon": 0,
+    "timezone": ""
+  },
   "connectivity": {
     "enabled": false
   },
   "stocks": {
-    "symbols": [
-      "AAPL",
-      "MSFT",
-      "GOOGL",
-      "AMZN",
-      "TSLA"
-    ]
+    "symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
   },
   "events": {
     "enabled": false
+  },
+  "familyGoals": {
+    "enabled": true
   }
 }
