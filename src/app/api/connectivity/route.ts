@@ -1,58 +1,44 @@
 import { NextResponse } from 'next/server';
 
-const API_BASE = 'https://api.ui.com';
+// pi-monitor's backend already polls UniFi Site Manager and is deployed and
+// working at this host; proxy through it instead of hitting api.ui.com
+// directly (which would need its own UNIFI_API_KEY configured for daylight).
+const PI_MONITOR_URL = process.env.PI_MONITOR_URL || 'http://192.168.1.5';
+
+interface IspSummary {
+  latency_ms: number | null;
+  packet_loss_percent: number | null;
+  download_mbps: number | null;
+  upload_mbps: number | null;
+  uptime_percent: number | null;
+  isp_name: string | null;
+}
 
 export async function GET() {
-  const apiKey = process.env.UNIFI_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({ error: 'No API key configured' }, { status: 503 });
-  }
-
   try {
-    const res = await fetch(`${API_BASE}/v1/isp-metrics/5m?duration=24h`, {
-      headers: {
-        'Accept': 'application/json',
-        'X-API-Key': apiKey,
-      },
+    const res = await fetch(`${PI_MONITOR_URL}/api/unifi/isp`, {
+      headers: { Accept: 'application/json' },
       next: { revalidate: 0 },
     });
 
-    if (!res.ok) throw new Error(`UniFi API returned ${res.status}`);
+    if (!res.ok) throw new Error(`pi-monitor returned ${res.status}`);
 
     const json = await res.json();
-    const siteData = json.data?.[0];
+    const summary: Partial<IspSummary> = json.summary || {};
 
-    if (!siteData) return NextResponse.json({ error: 'No site data' }, { status: 502 });
-
-    const rawPeriods = siteData.periods || [];
-    if (!rawPeriods.length) return NextResponse.json({ error: 'No periods' }, { status: 502 });
-
-    const periods = rawPeriods.map((p: Record<string, unknown>) => {
-      const wan = (p.data as Record<string, unknown>)?.wan as Record<string, unknown> || {};
-      return {
-        t: p.timestamp ?? p.start ?? null,
-        latency: wan.avgLatency ?? null,
-        packetLoss: wan.packetLoss ?? null,
-        uptime: wan.uptime ?? null,
-        downloadKbps: wan.download_kbps ?? null,
-        uploadKbps: wan.upload_kbps ?? null,
-        ispName: wan.ispName ?? null,
-      };
-    });
-
-    const latest = periods[periods.length - 1];
+    if (json.error || !json.summary) {
+      return NextResponse.json({ error: json.error || 'No summary data' }, { status: 502 });
+    }
 
     return NextResponse.json({
       latest: {
-        latency: latest.latency,
-        packetLoss: latest.packetLoss,
-        uptime: latest.uptime,
-        downloadMbps: latest.downloadKbps ? Math.round(latest.downloadKbps / 1000) : null,
-        uploadMbps: latest.uploadKbps ? Math.round(latest.uploadKbps / 1000) : null,
-        ispName: latest.ispName,
+        latency: summary.latency_ms ?? null,
+        packetLoss: summary.packet_loss_percent ?? null,
+        uptime: summary.uptime_percent ?? null,
+        downloadMbps: summary.download_mbps ?? null,
+        uploadMbps: summary.upload_mbps ?? null,
+        ispName: summary.isp_name ?? null,
       },
-      periods,
     });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 502 });

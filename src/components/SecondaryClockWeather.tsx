@@ -14,11 +14,6 @@ interface WeatherData {
     wind: number;
     humidity: number;
   };
-  forecast: Array<{
-    time: string;
-    temp: number;
-    icon: string;
-  }>;
 }
 
 interface SecondaryClockWeatherProps {
@@ -34,7 +29,7 @@ export function SecondaryClockWeather({ lat, lon, timezone, cityName }: Secondar
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
+    const timer = setInterval(() => setTime(new Date()), 15000);
     return () => clearInterval(timer);
   }, []);
 
@@ -42,20 +37,16 @@ export function SecondaryClockWeather({ lat, lon, timezone, cityName }: Secondar
     async function fetchWeather() {
       try {
         const res = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}` +
           '&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code' +
           '&daily=temperature_2m_max,temperature_2m_min' +
-          '&hourly=temperature_2m,weather_code' +
-          `&wind_speed_unit=kmh&timezone=${encodeURIComponent(timezone)}&forecast_days=2`
+          `&wind_speed_unit=kmh&timezone=${encodeURIComponent(timezone)}&forecast_days=1`
         );
 
         if (!res.ok) throw new Error("Weather fetch failed");
 
         const json = await res.json();
         const c = json.current;
-
-        const nowKey = new Date().toLocaleString('sv', { timeZone: timezone }).slice(0, 13).replace(' ', 'T');
-        const nowIdx = Math.max(0, json.hourly.time.findIndex((t: string) => t.startsWith(nowKey)));
 
         setData({
           current: {
@@ -66,14 +57,6 @@ export function SecondaryClockWeather({ lat, lon, timezone, cityName }: Secondar
             wind: Math.round(c.wind_speed_10m),
             humidity: c.relative_humidity_2m,
           },
-          forecast: [3, 6, 9].map(offset => {
-            const idx = nowIdx + offset;
-            return {
-              time: (json.hourly.time[idx] as string).slice(11, 16),
-              temp: Math.round(json.hourly.temperature_2m[idx]),
-              icon: wmoToCondition(json.hourly.weather_code[idx]),
-            };
-          }),
         });
       } catch (error) {
         console.error("Secondary weather error:", error);
@@ -117,7 +100,7 @@ export function SecondaryClockWeather({ lat, lon, timezone, cityName }: Secondar
         <motion.div
           className="ml-auto"
           animate={{ rotate: [0, 10, 0] }}
-          transition={{ duration: 3, repeat: Infinity }}
+          transition={{ duration: 15, repeat: Infinity }}
         >
           {getWeatherIcon(data.current.condition, "size-16 text-blue-300")}
         </motion.div>
@@ -177,19 +160,6 @@ export function SecondaryClockWeather({ lat, lon, timezone, cityName }: Secondar
         </div>
       </div>
 
-      {/* Hourly Forecast */}
-      <div className="pt-4 border-t border-white/10">
-        <div className="text-white/50 text-xs mb-2">Next 9 hours</div>
-        <div className="flex justify-between">
-          {data.forecast.map((item, i) => (
-            <div key={i} className="text-center">
-              <div className="text-white/50 text-xs mb-1">{item.time}</div>
-              {getWeatherIcon(item.icon, "size-5 text-blue-300 mx-auto mb-1")}
-              <div className="text-white text-sm">{item.temp}°</div>
-            </div>
-          ))}
-        </div>
-      </div>
     </motion.div>
   );
 }

@@ -2,9 +2,11 @@ import { WelcomeHeader } from "@/components/WelcomeHeader";
 import { QuoteSection } from "@/components/QuoteSection";
 import { WeatherCard } from "@/components/WeatherCard";
 import { SecondaryClockWeather } from "@/components/SecondaryClockWeather";
+import { TertiaryWeather } from "@/components/TertiaryWeather";
 import { VegasEventsCarousel } from "@/components/VegasEventsCarousel";
 import { FamilyGoals } from "@/components/FamilyGoals";
 import { UpcomingEvents } from "@/components/UpcomingEvents";
+import { MonthlyCalendar } from "@/components/MonthlyCalendar";
 import { TodoList } from "@/components/TodoList";
 import { Celebrations } from "@/components/Celebrations";
 import { TripPlanner } from "@/components/TripPlanner";
@@ -24,7 +26,7 @@ export default async function Home() {
   ]);
 
   const config = readConfig();
-  const { primaryLocation, secondaryLocation, events: eventsConfig } = config;
+  const { primaryLocation, secondaryLocation, tertiaryLocation, events: eventsConfig, familyGoals: familyGoalsConfig } = config;
 
   return (
     <main className="min-h-screen flex flex-col p-8 pb-20">
@@ -53,6 +55,14 @@ export default async function Home() {
               timezone={primaryLocation.timezone}
               cityName={primaryLocation.name}
             />
+            {tertiaryLocation.enabled && (
+              <TertiaryWeather
+                lat={tertiaryLocation.lat}
+                lon={tertiaryLocation.lon}
+                timezone={tertiaryLocation.timezone}
+                cityName={tertiaryLocation.name}
+              />
+            )}
             {secondaryLocation.enabled && (
               <SecondaryClockWeather
                 lat={secondaryLocation.lat}
@@ -65,15 +75,16 @@ export default async function Home() {
 
           {/* Column 2 */}
           <div className="space-y-6">
-            <FamilyGoals items={goals} />
+            {familyGoalsConfig.enabled && <FamilyGoals items={goals} />}
+            <TripPlanner items={trips} />
             <TodoList />
           </div>
 
           {/* Column 3 */}
           <div className="space-y-6">
+            <MonthlyCalendar events={events} celebrations={anniversaries} trips={trips} />
             <UpcomingEvents items={events} />
             <Celebrations items={anniversaries} />
-            <TripPlanner items={trips} />
           </div>
 
         </div>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createAdminSessionValue } from '@/lib/adminSession';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,8 +17,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 });
     }
 
+    const sessionValue = await createAdminSessionValue();
+
     const res = NextResponse.json({ ok: true });
-    res.cookies.set('daylight_admin', '1', {
+    res.cookies.set('daylight_admin', sessionValue!, {
       httpOnly: true,
       sameSite: 'strict',
       path: '/',

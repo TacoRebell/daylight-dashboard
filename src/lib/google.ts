@@ -53,7 +53,7 @@ async function fetchEvents(timeMin: string, timeMax: string, calendarId: string 
 
 // --- EXPORTED FUNCTIONS ---
 
-// 1. Upcoming Events (Primary Calendar) - Next 2 events regardless of date
+// 1. Upcoming Events (Primary Calendar) - Next 4 events regardless of date
 export async function getUpcomingEvents() {
   const now = new Date();
   const timeMin = formatInTimeZone(now, timeZone, "yyyy-MM-dd'T'00:00:00XXX");
@@ -63,7 +63,7 @@ export async function getUpcomingEvents() {
   const timeMax = formatInTimeZone(nextYear, timeZone, "yyyy-MM-dd'T'23:59:59XXX");
 
   const events = await fetchEvents(timeMin, timeMax);
-  return events.slice(0, 2);
+  return events.slice(0, 4);
 }
 
 // 2. Anniversaries - Next 30 Days

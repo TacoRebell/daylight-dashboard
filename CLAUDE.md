@@ -21,29 +21,30 @@ npm run lint     # Run ESLint
 `layout.tsx` calls `getStocks()` which reads stock symbols from `config.json` via `readConfig()`.
 
 **Client-side fetching** (components poll independently):
-- `WelcomeHeader`, `WeatherCard`, `SecondaryClockWeather` — fetch Open-Meteo directly using props for lat/lon/timezone
+- `WelcomeHeader`, `WeatherCard`, `SecondaryClockWeather`, `TertiaryWeather` — fetch Open-Meteo directly using props for lat/lon/timezone
 - `TodoList` — fetches `/api/tasks` every 60s
-- `ConnectivityWidget` — fetches `/api/connectivity` every 30s (only rendered when `config.connectivity.enabled`)
+- `StockTicker` — also fetches `/api/connectivity` every 30s for the network-status readout alongside the ticker
 
 ### Config system
 
-User preferences (location, enabled features, stock symbols) live in `config.json` at the project root.
+User preferences (location, enabled features, stock symbols) live in `config.json` at the project root. It's gitignored (can contain a real location) — `config.example.json` has the placeholder shape; `readConfig()` falls back to built-in defaults if the file is missing.
 
 - `src/lib/config.ts` — `readConfig()` and `writeConfig()` with typed schema and safe defaults
-- `GET /api/config` — returns current config
-- `POST /api/config` — validates, saves, and calls `revalidatePath('/')` to flush ISR cache
+- `GET /api/config` — returns current config, unauthenticated (read by the dashboard, admin panel, and Docker healthcheck)
+- `POST /api/config` — requires a valid `daylight_admin` session (see below), validates types, saves, and calls `revalidatePath('/')` to flush ISR cache
 - In Docker, `config.json` must be mounted as a volume: `-v ./config.json:/app/config.json`
 
 ### Admin panel
 
 - `/admin` — settings UI (city search, toggles, stock picker)
 - `/admin/login` — password form; password set via `ADMIN_PASSWORD` env var
-- `src/proxy.ts` — Next.js 16 proxy (replaces middleware) protecting `/admin/*` routes
+- `src/proxy.ts` — Next.js 16 proxy (replaces middleware) protecting `/admin/*` page routes
+- `src/lib/adminSession.ts` — signs/verifies the `daylight_admin` cookie (HMAC over `ADMIN_PASSWORD`, Web Crypto so it works on both the Edge and Node.js runtimes). `proxy.ts` and any mutating API route (`POST /api/config`) both call `isValidAdminSession()` — checking cookie *presence* alone is not sufficient, since page-only middleware doesn't cover `/api/*`.
 
 ### Key architectural decisions
 
 - **Google auth**: OAuth2 with a long-lived refresh token. Auth is constructed inline in each `lib/` function.
 - **Weather**: Open-Meteo API — free, no key required, returns timezone alongside coordinates from geocoding API.
-- **ISR**: `revalidate = 3600` on page, `revalidate = 300` on layout. Overridden to `force-dynamic` on page since config is read at request time.
+- **ISR**: `revalidate = 300` on `layout.tsx` — this still matters for `/admin` and `/admin/login`, which are static ISR pages that inherit it (the layout renders `StockTicker` on every route). `page.tsx` itself is `force-dynamic` since config is read at request time, which overrides the layout's revalidate for `/` specifically.
 - **OLED protection**: `ScreenWipe` flashes a full-screen black overlay every 5–10 minutes.
 - **Hydration safety**: Components using `new Date()` return a placeholder div until after mount.

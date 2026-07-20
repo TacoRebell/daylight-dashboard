@@ -41,7 +41,7 @@ const getEventMeta = (title: string, index: number) => {
 };
 
 export function UpcomingEvents({ items = [] }: UpcomingEventsProps) {
-  const displayEvents = items.slice(0, 2);
+  const displayEvents = items.slice(0, 4);
 
   return (
     <motion.div 

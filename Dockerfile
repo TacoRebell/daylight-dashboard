@@ -1,5 +1,5 @@
 # 1. Base Image: Install dependencies only when needed
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 # 2. Dependencies Stage: Install packages
 FROM base AS deps

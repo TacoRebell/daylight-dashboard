@@ -44,3 +44,6 @@ next-env.d.ts
 .idea/
 *.swp
 *.swo
+
+# user-specific dashboard config (location, feature toggles) — see config.example.json
+/config.json

@@ -23,7 +23,7 @@ Built with Next.js 16, deployable via Docker, and configurable through a built-i
 | **Trip Planner** | Countdown cards for upcoming trips | Google Calendar |
 | **Stock Ticker** | Infinite-scrolling ticker pinned to the bottom | Yahoo Finance (no key) |
 | **Events Carousel** | Upcoming live music events | Ticketmaster API |
-| **Connectivity** | Live latency, packet loss, and uptime | UniFi Network Controller |
+| **Connectivity** | Live latency, packet loss, and uptime | pi-monitor (proxies UniFi Site Manager) |
 
 ### OLED protection
 A full-screen black overlay fires every 5–10 minutes to prevent image burn-in on OLED panels.
@@ -65,7 +65,7 @@ Visit `/admin` to configure the dashboard without touching any code or files.
 |---|---|
 | **Primary Location** | City search → sets weather, clock, and UV index |
 | **Secondary Location** | Toggle on + search for a second city clock/weather card |
-| **Connectivity Monitor** | Toggle on to show UniFi network stats |
+| **Connectivity Monitor** | Toggle on to show network stats proxied from the pi-monitor stack |
 | **Stock Ticker** | Add/remove ticker symbols |
 | **Events Carousel** | Toggle on to show live music events via Ticketmaster |
 
@@ -128,18 +128,16 @@ Shows upcoming live music events for your area.
 
 ---
 
-### UniFi Connectivity Monitor (optional)
+### Internet Connectivity Monitor (optional)
 
-Shows live WAN latency, packet loss, and uptime from a Ubiquiti network controller.
+Shows live WAN latency, packet loss, and uptime. This proxies through a separate `pi-monitor` stack's UniFi integration rather than calling `api.ui.com` directly, so Daylight itself never needs a UniFi API key.
 
-1. In your UniFi controller go to **Settings → API** and create an API key.
-2. Add to `.env.local`:
+1. Have the `pi-monitor` stack (see `/Projects/pi-monitor`) deployed and reachable on your network.
+2. Add to `.env.local` (defaults to `http://192.168.1.5` if omitted):
    ```bash
-   UNIFI_API_KEY=...
+   PI_MONITOR_URL=http://<pi-monitor-host>
    ```
 3. Enable the widget in `/admin` → Internet Connectivity.
-
-> Requires a UniFi Dream Machine or self-hosted controller with ISP Metrics enabled (Settings → System → ISP Metrics).
 
 ---
 
@@ -181,7 +179,7 @@ See [deploy.md](deploy.md) for a complete guide covering Docker installation, au
 
 All configuration lives in two places:
 - **`.env.local`** — secrets and API keys (never committed)
-- **`config.json`** — display preferences, edited via `/admin`
+- **`config.json`** — display preferences, edited via `/admin`. Gitignored since it can contain real location data; copy `config.example.json` to `config.json` to start (or just start the app — `readConfig()` falls back to built-in defaults if the file is missing).
 
 | Variable | Required | Description |
 |---|---|---|
@@ -193,7 +191,7 @@ All configuration lives in two places:
 | `GOOGLE_CALENDAR_ID_ANNIVERSARY` | For celebrations | Calendar ID |
 | `GOOGLE_CALENDAR_ID_TRIPS` | For trip planner | Calendar ID |
 | `TICKETMASTER_API_KEY` | For events carousel | Ticketmaster Discovery API key |
-| `UNIFI_API_KEY` | For connectivity widget | UniFi Network controller API key |
+| `PI_MONITOR_URL` | For connectivity widget | pi-monitor stack URL (defaults to `http://192.168.1.5`) |
 
 Copy `.env.example` to `.env.local` for a fully documented template.
 
@@ -219,13 +217,14 @@ Client-side polling:
   WeatherCard         — weather every 15 min  (Open-Meteo)
   SecondaryClockWeather — weather on mount    (Open-Meteo)
   TodoList            — tasks every 60 sec    (/api/tasks)
-  ConnectivityWidget  — stats every 30 sec    (/api/connectivity)
+  StockTicker         — network stats every 30 sec (/api/connectivity)
 ```
 
 **API routes:**
-- `GET/POST /api/config` — read and write dashboard config; POST calls `revalidatePath('/')` to flush ISR cache
+- `GET /api/config` — read dashboard config
+- `POST /api/config` — write dashboard config; requires an authenticated `/admin` session; calls `revalidatePath('/')` to flush ISR cache
 - `GET /api/tasks`, `POST /api/tasks/complete` — Google Tasks proxy
-- `GET /api/connectivity` — UniFi ISP metrics proxy
+- `GET /api/connectivity` — pi-monitor ISP metrics proxy
 - `GET /api/vegas-events` — Ticketmaster events (1h ISR cache)
 
 ---

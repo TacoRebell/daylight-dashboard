@@ -26,16 +26,16 @@ export function WelcomeHeader({ lat, lon, timezone }: WelcomeHeaderProps) {
 
   useEffect(() => {
     const updateTime = () => setTime(new Date());
-    const animationFrame = requestAnimationFrame(updateTime);
-    const timer = setInterval(updateTime, 1000);
-    return () => { cancelAnimationFrame(animationFrame); clearInterval(timer); };
+    updateTime();
+    const timer = setInterval(updateTime, 15000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
     async function fetchWeather() {
       try {
         const res = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}` +
           '&current=temperature_2m,apparent_temperature,weather_code,uv_index' +
           `&timezone=${encodeURIComponent(timezone)}`
         );
@@ -98,7 +98,7 @@ export function WelcomeHeader({ lat, lon, timezone }: WelcomeHeaderProps) {
           <div className="flex items-center gap-4">
             <motion.div
               animate={{ scale: [1, 1.06, 1] }}
-              transition={{ duration: 4, repeat: Infinity }}
+              transition={{ duration: 20, repeat: Infinity }}
             >
               {getWeatherIcon(weather.condition)}
             </motion.div>

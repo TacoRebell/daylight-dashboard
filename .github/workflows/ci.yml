@@ -15,7 +15,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -35,5 +35,5 @@ jobs:
           GOOGLE_CALENDAR_ID_ANNIVERSARY: stub
           GOOGLE_CALENDAR_ID_TRIPS: stub
           TICKETMASTER_API_KEY: stub
-          UNIFI_API_KEY: stub
+          PI_MONITOR_URL: stub
           ADMIN_PASSWORD: stub

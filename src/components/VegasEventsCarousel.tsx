@@ -78,8 +78,11 @@ export function VegasEventsCarousel() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    // localStorage isn't available during SSR — this has to run post-mount,
+    // same convention as SecondaryClockWeather/TertiaryWeather.
     const cached = getCache();
     if (cached && cached.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setArtists(cached);
       setLoading(false);
       return;

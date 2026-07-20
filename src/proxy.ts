@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { isValidAdminSession } from '@/lib/adminSession';
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoginPage = pathname === '/admin/login';
-  const session = request.cookies.get('daylight_admin');
+  const hasValidSession = await isValidAdminSession(request.cookies.get('daylight_admin')?.value);
 
   // Already logged in — redirect away from login page
-  if (isLoginPage && session) {
+  if (isLoginPage && hasValidSession) {
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 
   // Not logged in — send to login page
-  if (!isLoginPage && !session) {
+  if (!isLoginPage && !hasValidSession) {
     return NextResponse.redirect(new URL('/admin/login', request.url));
   }
 

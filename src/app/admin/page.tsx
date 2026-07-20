@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import type { DashboardConfig, LocationConfig } from '@/lib/config';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -330,12 +331,12 @@ export default function AdminPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 mt-1">
-          <a
+          <Link
             href="/"
             className="px-4 py-2 text-sm text-white/40 hover:text-white transition-colors"
           >
             ← Dashboard
-          </a>
+          </Link>
           <button
             onClick={logout}
             className="px-4 py-2 text-sm text-white/50 hover:text-white border border-white/10 hover:border-white/20 rounded-xl transition-colors"
@@ -389,10 +390,41 @@ export default function AdminPage() {
           )}
         </Section>
 
+        {/* Tertiary Location */}
+        <Section
+          title="Third Location"
+          description="Compact weather strip shown between the main weather card and the second city — displays temperature in °C and current condition only."
+        >
+          <div className="mb-5">
+            <Toggle
+              checked={config.tertiaryLocation.enabled}
+              onChange={v =>
+                setConfig({
+                  ...config,
+                  tertiaryLocation: { ...config.tertiaryLocation, enabled: v },
+                })
+              }
+              label="Enable third city"
+            />
+          </div>
+
+          {config.tertiaryLocation.enabled && (
+            <LocationSearch
+              value={config.tertiaryLocation}
+              onChange={loc =>
+                setConfig({
+                  ...config,
+                  tertiaryLocation: { ...config.tertiaryLocation, ...loc },
+                })
+              }
+            />
+          )}
+        </Section>
+
         {/* Connectivity Monitor */}
         <Section
           title="Internet Connectivity"
-          description="Shows live latency, packet loss, and uptime pulled from a Ubiquiti UniFi network controller."
+          description="Shows live latency, packet loss, and uptime, proxied through the pi-monitor stack's UniFi integration."
         >
           <Toggle
             checked={config.connectivity.enabled}
@@ -400,7 +432,19 @@ export default function AdminPage() {
               setConfig({ ...config, connectivity: { enabled: v } })
             }
             label="Show connectivity monitor"
-            description="Requires UNIFI_API_KEY to be set in your environment file."
+            description="Requires the pi-monitor stack to be reachable at PI_MONITOR_URL (defaults to http://192.168.1.5)."
+          />
+        </Section>
+
+        {/* Family Goals */}
+        <Section
+          title="Family Goals"
+          description="Shows a list of shared family goals pulled from a Google Sheet in column 2 of the dashboard."
+        >
+          <Toggle
+            checked={config.familyGoals.enabled}
+            onChange={v => setConfig({ ...config, familyGoals: { enabled: v } })}
+            label="Show family goals"
           />
         </Section>
 

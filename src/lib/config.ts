@@ -16,6 +16,7 @@ export interface SecondaryLocationConfig extends LocationConfig {
 export interface DashboardConfig {
   primaryLocation: LocationConfig;
   secondaryLocation: SecondaryLocationConfig;
+  tertiaryLocation: SecondaryLocationConfig;
   connectivity: {
     enabled: boolean;
   };
@@ -23,6 +24,9 @@ export interface DashboardConfig {
     symbols: string[];
   };
   events: {
+    enabled: boolean;
+  };
+  familyGoals: {
     enabled: boolean;
   };
 }
@@ -45,6 +49,14 @@ const DEFAULT_CONFIG: DashboardConfig = {
     lon: 0,
     timezone: '',
   },
+  tertiaryLocation: {
+    enabled: false,
+    name: '',
+    country: '',
+    lat: 0,
+    lon: 0,
+    timezone: '',
+  },
   connectivity: {
     enabled: false,
   },
@@ -54,7 +66,23 @@ const DEFAULT_CONFIG: DashboardConfig = {
   events: {
     enabled: false,
   },
+  familyGoals: {
+    enabled: true,
+  },
 };
+
+// Coerce lat/lon to finite numbers, falling back to the default's values —
+// guards against a malformed config.json putting a non-numeric value into a
+// fetch URL template string downstream.
+function coerceLocation<T extends LocationConfig>(merged: T, fallback: T): T {
+  const lat = Number(merged.lat);
+  const lon = Number(merged.lon);
+  return {
+    ...merged,
+    lat: Number.isFinite(lat) ? lat : fallback.lat,
+    lon: Number.isFinite(lon) ? lon : fallback.lon,
+  };
+}
 
 export function readConfig(): DashboardConfig {
   try {
@@ -64,11 +92,22 @@ export function readConfig(): DashboardConfig {
     return {
       ...DEFAULT_CONFIG,
       ...parsed,
-      primaryLocation: { ...DEFAULT_CONFIG.primaryLocation, ...parsed.primaryLocation },
-      secondaryLocation: { ...DEFAULT_CONFIG.secondaryLocation, ...parsed.secondaryLocation },
+      primaryLocation: coerceLocation(
+        { ...DEFAULT_CONFIG.primaryLocation, ...parsed.primaryLocation },
+        DEFAULT_CONFIG.primaryLocation
+      ),
+      secondaryLocation: coerceLocation(
+        { ...DEFAULT_CONFIG.secondaryLocation, ...parsed.secondaryLocation },
+        DEFAULT_CONFIG.secondaryLocation
+      ),
+      tertiaryLocation: coerceLocation(
+        { ...DEFAULT_CONFIG.tertiaryLocation, ...parsed.tertiaryLocation },
+        DEFAULT_CONFIG.tertiaryLocation
+      ),
       connectivity: { ...DEFAULT_CONFIG.connectivity, ...parsed.connectivity },
       stocks: { ...DEFAULT_CONFIG.stocks, ...parsed.stocks },
       events: { ...DEFAULT_CONFIG.events, ...parsed.events },
+      familyGoals: { ...DEFAULT_CONFIG.familyGoals, ...parsed.familyGoals },
     };
   } catch {
     return DEFAULT_CONFIG;
