@@ -4,9 +4,9 @@ A self-hosted family dashboard designed for wall-mounted displays and dedicated 
 
 Built with Next.js 16, deployable via Docker, and configurable through a built-in web admin panel — no code edits required after setup.
 
-![Dashboard preview](public/bg.jpg)
+![Dashboard preview](docs/screenshots/dashboard.png)
 
-> Background photo by [Massimiliano Morosinotto](https://unsplash.com/@therawhunter) on [Unsplash](https://unsplash.com/photos/gray-mountain-during-daytime-photo-3i5PHVp1Fkw)
+> Shown with sample data — weather and stock prices are live (public, no-key APIs), everything else (calendar, goals, to-dos) is mock content for the screenshot. Background photo by [Massimiliano Morosinotto](https://unsplash.com/@therawhunter) on [Unsplash](https://unsplash.com/photos/gray-mountain-during-daytime-photo-3i5PHVp1Fkw)
 
 ---
 
@@ -60,6 +60,8 @@ Open **http://localhost:3000** for the dashboard and **http://localhost:3000/adm
 ## Admin Panel
 
 Visit `/admin` to configure the dashboard without touching any code or files.
+
+![Admin panel preview](docs/screenshots/admin.png)
 
 | Setting | What it does |
 |---|---|
