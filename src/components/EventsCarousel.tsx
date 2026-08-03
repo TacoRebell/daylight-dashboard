@@ -3,13 +3,13 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Music2, MapPin, Ticket } from 'lucide-react';
-import type { VegasArtist } from '@/lib/vegasEvents';
+import type { LocalArtist } from '@/lib/eventsCarousel';
 
-const CACHE_KEY = 'vegas_events_carousel_cache';
+const CACHE_KEY = 'events_carousel_cache';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 const SLIDE_INTERVAL = 6000;
 
-function getCache(): VegasArtist[] | null {
+function getCache(): LocalArtist[] | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
@@ -19,13 +19,13 @@ function getCache(): VegasArtist[] | null {
   return null;
 }
 
-function setCache(artists: VegasArtist[]) {
+function setCache(artists: LocalArtist[]) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), artists }));
   } catch {}
 }
 
-function ArtistCard({ artist }: { artist: VegasArtist }) {
+function ArtistCard({ artist }: { artist: LocalArtist }) {
   return (
     <div className="rounded-xl overflow-hidden border border-white/10 bg-[#111118]">
       {/* Image — solid placeholder bg so image loads don't flash */}
@@ -70,8 +70,8 @@ function ArtistCard({ artist }: { artist: VegasArtist }) {
 
 const VISIBLE = 3;
 
-export function VegasEventsCarousel() {
-  const [artists, setArtists] = useState<VegasArtist[]>([]);
+export function EventsCarousel() {
+  const [artists, setArtists] = useState<LocalArtist[]>([]);
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -87,7 +87,7 @@ export function VegasEventsCarousel() {
       setLoading(false);
       return;
     }
-    fetch('/api/vegas-events')
+    fetch('/api/events-carousel')
       .then((r) => r.json())
       .then((data) => {
         if (data.artists?.length) {
@@ -129,7 +129,7 @@ export function VegasEventsCarousel() {
       {/* Header */}
       <div className="flex items-center gap-2 px-5 pt-4 pb-3">
         <Music2 className="size-4 text-orange-400" />
-        <span className="text-white/60 text-xs font-medium uppercase tracking-wider">Vegas Live</span>
+        <span className="text-white/60 text-xs font-medium uppercase tracking-wider">Live Music</span>
         <span className="text-white/30 text-xs">· next 6 months</span>
         <span className="ml-auto text-white/30 text-xs">{artists.length} artists</span>
       </div>

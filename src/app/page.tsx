@@ -3,7 +3,7 @@ import { QuoteSection } from "@/components/QuoteSection";
 import { WeatherCard } from "@/components/WeatherCard";
 import { SecondaryClockWeather } from "@/components/SecondaryClockWeather";
 import { TertiaryWeather } from "@/components/TertiaryWeather";
-import { VegasEventsCarousel } from "@/components/VegasEventsCarousel";
+import { EventsCarousel } from "@/components/EventsCarousel";
 import { FamilyGoals } from "@/components/FamilyGoals";
 import { UpcomingEvents } from "@/components/UpcomingEvents";
 import { MonthlyCalendar } from "@/components/MonthlyCalendar";
@@ -89,11 +89,11 @@ export default async function Home() {
 
         </div>
 
-        {/* Vegas Events — full width, vertically centered in remaining space */}
+        {/* Events Carousel — full width, vertically centered in remaining space */}
         {eventsConfig.enabled && (
           <div className="flex-1 flex items-center py-4">
             <div className="w-full">
-              <VegasEventsCarousel />
+              <EventsCarousel />
             </div>
           </div>
         )}

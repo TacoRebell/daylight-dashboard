@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
-import { groupByArtist, type TmShow } from '@/lib/vegasEvents'
+import { groupByArtist, type TmShow } from '@/lib/eventsCarousel'
 import { isKnownArtist } from '@/lib/knownArtists'
+import { readConfig } from '@/lib/config'
 
 export const revalidate = 3600
 
 const TM_BASE = 'https://app.ticketmaster.com/discovery/v2/events.json'
+const RADIUS_MILES = 50
 
 function getDateRange(): [string, string] {
   const start = new Date()
@@ -21,13 +23,17 @@ export async function GET() {
     return NextResponse.json({ error: 'TICKETMASTER_API_KEY not set' }, { status: 500 })
   }
 
+  const { primaryLocation } = readConfig()
   const [startDateTime, endDateTime] = getDateRange()
 
+  // latlong+radius (rather than city/stateCode) works for any configured
+  // location, not just US cities with a state abbreviation.
   const params = new URLSearchParams({
     apikey: apiKey,
-    city: 'Las Vegas',
-    stateCode: 'NV',
-    countryCode: 'US',
+    latlong: `${primaryLocation.lat},${primaryLocation.lon}`,
+    radius: String(RADIUS_MILES),
+    unit: 'miles',
+    countryCode: primaryLocation.country,
     classificationName: 'music',
     startDateTime,
     endDateTime,

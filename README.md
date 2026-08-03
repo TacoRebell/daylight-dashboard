@@ -225,7 +225,7 @@ Client-side polling:
 - `POST /api/config` — write dashboard config; requires an authenticated `/admin` session; calls `revalidatePath('/')` to flush ISR cache
 - `GET /api/tasks`, `POST /api/tasks/complete` — Google Tasks proxy
 - `GET /api/connectivity` — pi-monitor ISP metrics proxy
-- `GET /api/vegas-events` — Ticketmaster events (1h ISR cache)
+- `GET /api/events-carousel` — Ticketmaster events near your primary location (1h ISR cache)
 
 ---
 

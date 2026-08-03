@@ -27,7 +27,7 @@ export interface TmShow {
   images: TmImage[]
 }
 
-export interface VegasArtist {
+export interface LocalArtist {
   id: string
   name: string
   image: TmImage | null
@@ -65,8 +65,8 @@ function fmtDate(d: string | undefined): string {
   })
 }
 
-export function groupByArtist(events: TmShow[]): VegasArtist[] {
-  const map: Record<string, VegasArtist> = {}
+export function groupByArtist(events: TmShow[]): LocalArtist[] {
+  const map: Record<string, LocalArtist> = {}
 
   for (const ev of events) {
     const attraction = ev._embedded?.attractions?.[0]
