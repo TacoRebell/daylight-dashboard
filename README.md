@@ -130,12 +130,35 @@ Shows upcoming live music events for your area.
 
 ### Internet Connectivity Monitor (optional)
 
-Shows live WAN latency, packet loss, and uptime. This proxies through a separate `pi-monitor` stack's UniFi integration rather than calling `api.ui.com` directly, so Daylight itself never needs a UniFi API key.
+Shows live WAN latency, packet loss, and uptime. This isn't a built-in integration — Daylight proxies the metrics from a separate self-hosted service (referred to here as `pi-monitor`, not included in this repo) rather than calling a router/ISP API directly, so Daylight itself never needs those credentials.
 
-1. Have the `pi-monitor` stack (see `/Projects/pi-monitor`) deployed and reachable on your network.
+To use this widget, you need your own service reachable on your network that exposes:
+
+```
+GET /api/unifi/isp
+```
+
+returning JSON shaped like:
+
+```json
+{
+  "summary": {
+    "latency_ms": 14,
+    "packet_loss_percent": 0,
+    "download_mbps": 512.3,
+    "upload_mbps": 41.7,
+    "uptime_percent": 99.98,
+    "isp_name": "Example ISP"
+  }
+}
+```
+
+(any field can be `null`; see `src/app/api/connectivity/route.ts` for exactly how each is consumed). The reference implementation proxies UniFi Site Manager, but the contract above is all Daylight cares about — point it at anything that speaks this shape.
+
+1. Deploy your `/api/unifi/isp`-compatible service and note its URL.
 2. Add to `.env.local` (defaults to `http://192.168.1.5` if omitted):
    ```bash
-   PI_MONITOR_URL=http://<pi-monitor-host>
+   PI_MONITOR_URL=http://<your-service-host>
    ```
 3. Enable the widget in `/admin` → Internet Connectivity.
 
