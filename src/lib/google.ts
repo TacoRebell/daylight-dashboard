@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 import { formatInTimeZone } from "date-fns-tz";
+import { readConfig } from "./config";
 
 // OAuth Setup
 const oauth2Client = new google.auth.OAuth2(
@@ -14,16 +15,20 @@ oauth2Client.setCredentials({
 const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 const tasks = google.tasks({ version: "v1", auth: oauth2Client });
 
-const timeZone = "America/Chicago"; // Hardcoded for Celina, TX
+// Reads config.json fresh each call so it follows whatever primaryLocation
+// is currently configured via /admin, rather than being fixed at process start.
+function getTimeZone(): string {
+  return readConfig().primaryLocation.timezone || "America/New_York";
+}
 
 // --- SHARED HELPER ---
 async function fetchEvents(timeMin: string, timeMax: string, calendarId: string = process.env.CALENDAR_ID || 'primary') {
   try {
     const response = await calendar.events.list({
-      calendarId, 
+      calendarId,
       timeMin,
       timeMax,
-      timeZone,
+      timeZone: getTimeZone(),
       singleEvents: true,
       orderBy: "startTime",
     });
@@ -55,6 +60,7 @@ async function fetchEvents(timeMin: string, timeMax: string, calendarId: string 
 
 // 1. Upcoming Events (Primary Calendar) - Next 4 events regardless of date
 export async function getUpcomingEvents() {
+  const timeZone = getTimeZone();
   const now = new Date();
   const timeMin = formatInTimeZone(now, timeZone, "yyyy-MM-dd'T'00:00:00XXX");
 
@@ -71,9 +77,10 @@ export async function getAnniversaries() {
   const calendarId = process.env.GOOGLE_CALENDAR_ID_ANNIVERSARY;
   if (!calendarId) return [];
 
+  const timeZone = getTimeZone();
   const now = new Date();
   const timeMin = formatInTimeZone(now, timeZone, "yyyy-MM-dd'T'00:00:00XXX");
-  
+
   const nextMonth = new Date(now);
   nextMonth.setDate(now.getDate() + 90);
   const timeMax = formatInTimeZone(nextMonth, timeZone, "yyyy-MM-dd'T'23:59:59XXX");
@@ -86,9 +93,10 @@ export async function getTrips() {
   const calendarId = process.env.GOOGLE_CALENDAR_ID_TRIPS;
   if (!calendarId) return [];
 
+  const timeZone = getTimeZone();
   const now = new Date();
   const timeMin = formatInTimeZone(now, timeZone, "yyyy-MM-dd'T'00:00:00XXX");
-  
+
   const nextQuarter = new Date(now);
   nextQuarter.setDate(now.getDate() + 90);
   const timeMax = formatInTimeZone(nextQuarter, timeZone, "yyyy-MM-dd'T'23:59:59XXX");
