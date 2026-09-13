@@ -33,5 +33,9 @@
   },
   "familyGoals": {
     "enabled": true
+  },
+  "display": {
+    "upcomingEventsCount": 4,
+    "celebrationsCount": 3
   }
 }

@@ -235,6 +235,55 @@ function Toggle({
   );
 }
 
+// ── CountStepper ───────────────────────────────────────────────────────────────
+
+const COUNT_MIN = 1;
+const COUNT_MAX = 10;
+
+function CountStepper({
+  value,
+  onChange,
+  label,
+  description,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  label: string;
+  description?: string;
+}) {
+  const clamp = (v: number) => Math.min(COUNT_MAX, Math.max(COUNT_MIN, v));
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <div className="text-white font-medium leading-6">{label}</div>
+        {description && (
+          <div className="text-white/40 text-sm mt-0.5">{description}</div>
+        )}
+      </div>
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <button
+          onClick={() => onChange(clamp(value - 1))}
+          disabled={value <= COUNT_MIN}
+          aria-label={`Decrease ${label}`}
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          −
+        </button>
+        <span className="w-6 text-center text-white font-mono">{value}</span>
+        <button
+          onClick={() => onChange(clamp(value + 1))}
+          disabled={value >= COUNT_MAX}
+          aria-label={`Increase ${label}`}
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 border border-white/10 text-white hover:bg-white/15 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Section ────────────────────────────────────────────────────────────────────
 
 function Section({
@@ -457,6 +506,35 @@ export default function AdminPage() {
             symbols={config.stocks.symbols}
             onChange={symbols => setConfig({ ...config, stocks: { symbols } })}
           />
+        </Section>
+
+        {/* Upcoming Events & Celebrations counts */}
+        <Section
+          title="Upcoming Events & Celebrations"
+          description="How many items to show in the Upcoming Events and Celebrations cards in column 3 of the dashboard."
+        >
+          <div className="space-y-5">
+            <CountStepper
+              value={config.display.upcomingEventsCount}
+              onChange={v =>
+                setConfig({
+                  ...config,
+                  display: { ...config.display, upcomingEventsCount: v },
+                })
+              }
+              label="Upcoming Events"
+            />
+            <CountStepper
+              value={config.display.celebrationsCount}
+              onChange={v =>
+                setConfig({
+                  ...config,
+                  display: { ...config.display, celebrationsCount: v },
+                })
+              }
+              label="Celebrations"
+            />
+          </div>
         </Section>
 
         {/* Events Carousel */}

@@ -15,6 +15,7 @@ interface CalendarEvent {
 
 interface UpcomingEventsProps {
   items: CalendarEvent[];
+  limit?: number;
 }
 
 const getEventMeta = (title: string, index: number) => {
@@ -40,8 +41,8 @@ const getEventMeta = (title: string, index: number) => {
   return defaults[index % defaults.length];
 };
 
-export function UpcomingEvents({ items = [] }: UpcomingEventsProps) {
-  const displayEvents = items.slice(0, 4);
+export function UpcomingEvents({ items = [], limit = 4 }: UpcomingEventsProps) {
+  const displayEvents = items.slice(0, limit);
 
   return (
     <motion.div 

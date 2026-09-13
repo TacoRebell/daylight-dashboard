@@ -17,16 +17,23 @@ import { readConfig } from "@/lib/config";
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
+  const config = readConfig();
+  const {
+    primaryLocation,
+    secondaryLocation,
+    tertiaryLocation,
+    events: eventsConfig,
+    familyGoals: familyGoalsConfig,
+    display: displayConfig,
+  } = config;
+
   const [goals, anniversaries, trips, events, quotes] = await Promise.all([
     getFamilyGoals(),
     getAnniversaries(),
     getTrips(),
-    getUpcomingEvents(),
+    getUpcomingEvents(displayConfig.upcomingEventsCount),
     getQuotes()
   ]);
-
-  const config = readConfig();
-  const { primaryLocation, secondaryLocation, tertiaryLocation, events: eventsConfig, familyGoals: familyGoalsConfig } = config;
 
   return (
     <main className="min-h-screen flex flex-col p-8 pb-20">
@@ -83,8 +90,8 @@ export default async function Home() {
           {/* Column 3 */}
           <div className="space-y-6">
             <MonthlyCalendar events={events} celebrations={anniversaries} trips={trips} />
-            <UpcomingEvents items={events} />
-            <Celebrations items={anniversaries} />
+            <UpcomingEvents items={events} limit={displayConfig.upcomingEventsCount} />
+            <Celebrations items={anniversaries} limit={displayConfig.celebrationsCount} />
           </div>
 
         </div>

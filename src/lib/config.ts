@@ -29,6 +29,10 @@ export interface DashboardConfig {
   familyGoals: {
     enabled: boolean;
   };
+  display: {
+    upcomingEventsCount: number;
+    celebrationsCount: number;
+  };
 }
 
 const CONFIG_PATH = path.join(process.cwd(), 'config.json');
@@ -69,7 +73,23 @@ const DEFAULT_CONFIG: DashboardConfig = {
   familyGoals: {
     enabled: true,
   },
+  display: {
+    upcomingEventsCount: 4,
+    celebrationsCount: 3,
+  },
 };
+
+const MIN_DISPLAY_COUNT = 1;
+const MAX_DISPLAY_COUNT = 10;
+
+// Coerce to a finite integer clamped to a sane range, falling back to the
+// default's value — guards against a malformed config.json putting a
+// non-numeric or out-of-range value into a .slice() downstream.
+function coerceDisplayCount(value: unknown, fallback: number): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(MAX_DISPLAY_COUNT, Math.max(MIN_DISPLAY_COUNT, Math.round(n)));
+}
 
 // Coerce lat/lon to finite numbers, falling back to the default's values —
 // guards against a malformed config.json putting a non-numeric value into a
@@ -108,6 +128,16 @@ export function readConfig(): DashboardConfig {
       stocks: { ...DEFAULT_CONFIG.stocks, ...parsed.stocks },
       events: { ...DEFAULT_CONFIG.events, ...parsed.events },
       familyGoals: { ...DEFAULT_CONFIG.familyGoals, ...parsed.familyGoals },
+      display: {
+        upcomingEventsCount: coerceDisplayCount(
+          parsed.display?.upcomingEventsCount,
+          DEFAULT_CONFIG.display.upcomingEventsCount
+        ),
+        celebrationsCount: coerceDisplayCount(
+          parsed.display?.celebrationsCount,
+          DEFAULT_CONFIG.display.celebrationsCount
+        ),
+      },
     };
   } catch {
     return DEFAULT_CONFIG;

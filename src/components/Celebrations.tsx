@@ -13,6 +13,7 @@ interface CalendarEvent {
 
 interface CelebrationsProps {
   items: CalendarEvent[];
+  limit?: number;
 }
 
 // Helper to assign icons/colors based on keywords in the event title
@@ -37,7 +38,7 @@ const getEventStyle = (title: string, index: number) => {
   return defaults[index % defaults.length];
 };
 
-export function Celebrations({ items = [] }: CelebrationsProps) {
+export function Celebrations({ items = [], limit = 3 }: CelebrationsProps) {
   const today = new Date();
 
   // Process and sort events by nearest date
@@ -55,7 +56,7 @@ export function Celebrations({ items = [] }: CelebrationsProps) {
       };
     })
     .sort((a, b) => a.daysLeft - b.daysLeft)
-    .slice(0, 3); // Limit to top 3
+    .slice(0, limit);
 
   return (
     <motion.div 

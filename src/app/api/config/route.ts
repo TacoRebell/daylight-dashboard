@@ -40,6 +40,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  for (const key of ['upcomingEventsCount', 'celebrationsCount'] as const) {
+    const value = body.display?.[key];
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > 10) {
+      return NextResponse.json({ error: `display.${key} must be an integer between 1 and 10` }, { status: 400 });
+    }
+  }
+
   try {
     writeConfig(body);
     // Invalidate ISR cache so the dashboard reflects new config immediately
