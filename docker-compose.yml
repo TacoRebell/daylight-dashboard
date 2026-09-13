@@ -5,6 +5,11 @@ services:
       - "3000:3000"
     env_file:
       - .env.local
+    environment:
+      # The host has no IPv6 default route; Node's fetch (Happy Eyeballs) still
+      # tries AAAA records first and times out before falling back to IPv4,
+      # so outbound calls (e.g. yahoo-finance2) fail almost every cycle.
+      - NODE_OPTIONS=--dns-result-order=ipv4first
     volumes:
       # Persist dashboard config across container restarts
       - ./config.json:/app/config.json
@@ -20,7 +25,9 @@ services:
         max-size: "10m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/config"]
+      # Literal IPv4 address, not "localhost" — same IPv6-first resolution
+      # issue as above causes wget to hit the unbound ::1 and fail.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/config"]
       interval: 30s
       timeout: 10s
       retries: 3
