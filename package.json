@@ -32,7 +32,7 @@
     "googleapis": "^169.0.0",
     "lucide-react": "^0.562.0",
     "motion": "^12.24.12",
-    "next": "^16.2.11",
+    "next": "^16.3.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.6.0",
@@ -43,8 +43,13 @@
   },
   "overrides": {
     "postcss": ">=8.5.18",
-    "qs": ">=6.15.2",
-    "sharp": ">=0.35.0"
+    "qs": ">=6.16.0",
+    "sharp": ">=0.35.4",
+    "browserslist": ">=4.28.7",
+    "nanoid": ">=3.3.18",
+    "js-yaml": ">=4.3.1",
+    "baseline-browser-mapping": ">=2.11.0",
+    "@humanfs/node": ">=0.16.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
