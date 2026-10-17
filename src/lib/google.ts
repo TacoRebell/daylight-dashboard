@@ -22,7 +22,12 @@ function getTimeZone(): string {
 }
 
 // --- SHARED HELPER ---
-async function fetchEvents(timeMin: string, timeMax: string, calendarId: string = process.env.CALENDAR_ID || 'primary') {
+async function fetchEvents(
+  timeMin: string,
+  timeMax: string,
+  calendarId: string = process.env.CALENDAR_ID || 'primary',
+  maxResults?: number
+) {
   try {
     const response = await calendar.events.list({
       calendarId,
@@ -30,6 +35,7 @@ async function fetchEvents(timeMin: string, timeMax: string, calendarId: string 
       timeMax,
       timeZone: getTimeZone(),
       singleEvents: true,
+      maxResults,
       orderBy: "startTime",
     });
 
@@ -68,11 +74,13 @@ export async function getUpcomingEvents(limit: number = 4) {
   nextYear.setFullYear(now.getFullYear() + 1);
   const timeMax = formatInTimeZone(nextYear, timeZone, "yyyy-MM-dd'T'23:59:59XXX");
 
-  const events = await fetchEvents(timeMin, timeMax);
+  // Events come back ordered by start time, so the API can cap the page itself.
+  // Slice too in case the API returns more than asked.
+  const events = await fetchEvents(timeMin, timeMax, undefined, limit);
   return events.slice(0, limit);
 }
 
-// 2. Anniversaries - Next 30 Days
+// 2. Anniversaries - Next 90 Days
 export async function getAnniversaries() {
   const calendarId = process.env.GOOGLE_CALENDAR_ID_ANNIVERSARY;
   if (!calendarId) return [];
@@ -81,9 +89,9 @@ export async function getAnniversaries() {
   const now = new Date();
   const timeMin = formatInTimeZone(now, timeZone, "yyyy-MM-dd'T'00:00:00XXX");
 
-  const nextMonth = new Date(now);
-  nextMonth.setDate(now.getDate() + 90);
-  const timeMax = formatInTimeZone(nextMonth, timeZone, "yyyy-MM-dd'T'23:59:59XXX");
+  const windowEnd = new Date(now);
+  windowEnd.setDate(now.getDate() + 90);
+  const timeMax = formatInTimeZone(windowEnd, timeZone, "yyyy-MM-dd'T'23:59:59XXX");
 
   return fetchEvents(timeMin, timeMax, calendarId);
 }

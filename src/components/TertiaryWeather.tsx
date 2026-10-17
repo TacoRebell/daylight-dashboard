@@ -28,17 +28,26 @@ export function TertiaryWeather({ lat, lon, timezone, cityName }: TertiaryWeathe
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}` +
-      `&current=temperature_2m,weather_code&timezone=${encodeURIComponent(timezone)}`
-    )
-      .then(r => r.json())
-      .then(json => {
+    async function fetchWeather() {
+      try {
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}` +
+          `&current=temperature_2m,weather_code&timezone=${encodeURIComponent(timezone)}`
+        );
+        if (!res.ok) throw new Error("Weather fetch failed");
+        const json = await res.json();
         setTemp(Math.round(json.current.temperature_2m));
         setCondition(wmoToCondition(json.current.weather_code));
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      } catch (error) {
+        console.error("Tertiary weather error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 900000);
+    return () => clearInterval(interval);
   }, [lat, lon, timezone]);
 
   if (loading) {

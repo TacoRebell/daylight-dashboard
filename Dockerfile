@@ -17,10 +17,6 @@ COPY . .
 # Disable Next.js telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build-time env vars (NEXT_PUBLIC_ vars must be available at build time)
-ARG NEXT_PUBLIC_WEATHER_KEY
-ENV NEXT_PUBLIC_WEATHER_KEY=$NEXT_PUBLIC_WEATHER_KEY
-
 RUN npm run build
 
 # 4. Runner Stage: The actual production image

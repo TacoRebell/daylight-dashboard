@@ -22,7 +22,9 @@ export function TodoList() {
     async function fetchTasks() {
       try {
         const res = await fetch("/api/tasks");
+        if (!res.ok) throw new Error(`Tasks fetch failed: ${res.status}`);
         const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("Unexpected tasks response");
         // Limit to max 10 tasks strictly
         setTasks(data.slice(0, 10));
       } catch (e) {

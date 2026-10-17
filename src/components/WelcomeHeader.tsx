@@ -78,10 +78,10 @@ export function WelcomeHeader({ lat, lon, timezone }: WelcomeHeaderProps) {
       {/* Left: Clock + Date */}
       <div className="flex flex-col">
         <div className="text-[7rem] font-bold text-white tracking-tight tabular-nums leading-none">
-          {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+          {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone })}
         </div>
         <div className="text-white/60 text-xl uppercase tracking-widest font-medium mt-3">
-          {time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          {time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: timezone })}
         </div>
       </div>
 

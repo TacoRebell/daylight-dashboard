@@ -93,9 +93,6 @@ GOOGLE_REFRESH_TOKEN=your_google_refresh_token
 GOOGLE_SHEET_ID=your_google_sheet_id
 GOOGLE_CALENDAR_ID_ANNIVERSARY=your_anniversary_calendar_id
 GOOGLE_CALENDAR_ID_TRIPS=your_trips_calendar_id
-
-# Weather API
-NEXT_PUBLIC_WEATHER_KEY=your_openweathermap_api_key
 ```
 
 Save and exit (Ctrl+X, Y, Enter).

@@ -5,8 +5,7 @@ import { StockTicker } from "@/components/StockTicker";
 import { BackgroundLayer } from "@/components/BackgroundLayer";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { getStocks } from "@/lib/stocks";
-
-// Removed BurnInGuard import, kept ScreenWipe
+import { readConfig } from "@/lib/config";
 import { ScreenWipe } from "@/components/ScreenWipe";
 
 const geistSans = Geist({
@@ -32,6 +31,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const stocks = await getStocks();
+  const { connectivity } = readConfig();
 
   return (
     <html lang="en">
@@ -46,11 +46,10 @@ export default async function RootLayout({
         <ScreenWipe />
 
         <div className="relative z-10">
-          {/* Removed BurnInGuard wrapper. Content is now static. */}
           {children}
         </div>
 
-        <StockTicker items={stocks} />
+        <StockTicker items={stocks} connectivityEnabled={connectivity.enabled} />
       </body>
     </html>
   );

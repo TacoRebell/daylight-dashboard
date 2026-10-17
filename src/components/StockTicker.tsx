@@ -6,6 +6,7 @@ import { StockData } from '@/lib/stocks';
 
 interface StockTickerProps {
   items: StockData[];
+  connectivityEnabled?: boolean;
 }
 
 interface ConnectivityLatest {
@@ -24,10 +25,12 @@ function NetStat({ label, value, good }: { label: string; value: string; good: b
   );
 }
 
-export function StockTicker({ items = [] }: StockTickerProps) {
+export function StockTicker({ items = [], connectivityEnabled = false }: StockTickerProps) {
   const [net, setNet] = useState<ConnectivityLatest | null>(null);
 
   useEffect(() => {
+    if (!connectivityEnabled) return;
+
     async function fetchNet() {
       try {
         const res = await fetch('/api/connectivity');
@@ -39,9 +42,10 @@ export function StockTicker({ items = [] }: StockTickerProps) {
     fetchNet();
     const id = setInterval(fetchNet, 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [connectivityEnabled]);
 
-  if (items.length === 0) return null;
+  const showStocks = items.length > 0;
+  if (!showStocks && !connectivityEnabled) return null;
 
   const tickerItems = [...items, ...items, ...items, ...items];
 
@@ -80,14 +84,17 @@ export function StockTicker({ items = [] }: StockTickerProps) {
         style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }}
       >
         {/* Network stats — fixed left panel */}
+        {connectivityEnabled && (
         <div className="absolute left-0 top-0 bottom-0 z-20 bg-[#0a0a0a] px-5 flex items-center gap-5 border-r border-white/10 shadow-[5px_0_10px_rgba(0,0,0,0.5)]">
           <NetStat label="NET" value={latencyStr} good={latencyOk} />
           <NetStat label="LOSS" value={lossStr} good={lossOk} />
           <NetStat label="UP" value={uptimeStr} good={uptimeOk} />
         </div>
+        )}
 
         {/* Scrolling stocks */}
-        <div className="animate-ticker-scroll flex pl-[310px]">
+        {showStocks && (
+        <div className={`animate-ticker-scroll flex ${connectivityEnabled ? 'pl-[310px]' : ''}`}>
           {tickerItems.map((stock, index) => (
             <div key={`${stock.symbol}-${index}`} className="flex items-center gap-2 whitespace-nowrap mx-6">
               <span className="text-white/80 font-bold text-base">{stock.symbol}</span>
@@ -99,6 +106,7 @@ export function StockTicker({ items = [] }: StockTickerProps) {
             </div>
           ))}
         </div>
+        )}
       </div>
     </>
   );

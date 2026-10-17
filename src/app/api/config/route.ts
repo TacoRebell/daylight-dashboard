@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { readConfig, writeConfig, DashboardConfig } from '@/lib/config';
+import { readConfig, writeConfig, sanitizeConfig, DashboardConfig } from '@/lib/config';
 import { isValidAdminSession } from '@/lib/adminSession';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +21,10 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Body must be a JSON object' }, { status: 400 });
   }
 
   // Shape + type validation
@@ -48,9 +52,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    writeConfig(body);
-    // Invalidate ISR cache so the dashboard reflects new config immediately
-    revalidatePath('/');
+    writeConfig(sanitizeConfig(body));
+    // Invalidate ISR cache so the dashboard reflects new config immediately.
+    // 'layout' scope also flushes the root layout (stock ticker, connectivity flag).
+    revalidatePath('/', 'layout');
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });

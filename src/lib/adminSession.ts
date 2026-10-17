@@ -19,25 +19,49 @@ function toHex(buffer: ArrayBuffer): string {
     .join('');
 }
 
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
+
+async function sign(payload: string, secret: string): Promise<string> {
+  const key = await hmacKey(secret);
+  return toHex(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload)));
+}
+
+// Constant-time comparison — avoid leaking match length/position via timing.
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+// Cookie value is `<expiry-epoch-seconds>.<hmac>`, so a leaked cookie stops
+// working after SESSION_MAX_AGE_SECONDS even though the server keeps no state.
 export async function createAdminSessionValue(): Promise<string | null> {
   const secret = process.env.ADMIN_PASSWORD;
   if (!secret) return null;
 
-  const key = await hmacKey(secret);
-  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(COOKIE_SUBJECT));
-  return toHex(signature);
+  const expiry = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
+  const signature = await sign(`${COOKIE_SUBJECT}:${expiry}`, secret);
+  return `${expiry}.${signature}`;
 }
 
 export async function isValidAdminSession(cookieValue: string | undefined): Promise<boolean> {
-  if (!cookieValue) return false;
+  const secret = process.env.ADMIN_PASSWORD;
+  if (!cookieValue || !secret) return false;
 
-  const expected = await createAdminSessionValue();
-  if (!expected || expected.length !== cookieValue.length) return false;
+  const [expiry, signature, ...rest] = cookieValue.split('.');
+  if (!expiry || !signature || rest.length > 0) return false;
+  if (!/^\d+$/.test(expiry) || Number(expiry) < Date.now() / 1000) return false;
 
-  // Constant-time comparison — avoid leaking match length/position via timing.
-  let diff = 0;
-  for (let i = 0; i < expected.length; i++) {
-    diff |= expected.charCodeAt(i) ^ cookieValue.charCodeAt(i);
-  }
-  return diff === 0;
+  return safeEqual(await sign(`${COOKIE_SUBJECT}:${expiry}`, secret), signature);
+}
+
+// Compares HMACs of both values so the comparison is constant-time and
+// independent of the password's length.
+export async function isCorrectPassword(candidate: string): Promise<boolean> {
+  const secret = process.env.ADMIN_PASSWORD;
+  if (!secret) return false;
+  return safeEqual(await sign(candidate, secret), await sign(secret, secret));
 }

@@ -66,6 +66,8 @@ export function SecondaryClockWeather({ lat, lon, timezone, cityName }: Secondar
     }
 
     fetchWeather();
+    const interval = setInterval(fetchWeather, 900000);
+    return () => clearInterval(interval);
   }, [lat, lon, timezone]);
 
   const getWeatherIcon = (condition: string, className: string) => {

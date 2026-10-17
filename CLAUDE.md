@@ -23,15 +23,15 @@ npm run lint     # Run ESLint
 **Client-side fetching** (components poll independently):
 - `WelcomeHeader`, `WeatherCard`, `SecondaryClockWeather`, `TertiaryWeather` — fetch Open-Meteo directly using props for lat/lon/timezone
 - `TodoList` — fetches `/api/tasks` every 60s
-- `StockTicker` — also fetches `/api/connectivity` every 30s for the network-status readout alongside the ticker
+- `StockTicker` — when `connectivity.enabled`, also fetches `/api/connectivity` every 30s for the network-status readout (shown even if the stock list is empty)
 
 ### Config system
 
 User preferences (location, enabled features, stock symbols) live in `config.json` at the project root. It's gitignored (can contain a real location) — `config.example.json` has the placeholder shape; `readConfig()` falls back to built-in defaults if the file is missing.
 
-- `src/lib/config.ts` — `readConfig()` and `writeConfig()` with typed schema and safe defaults
+- `src/lib/config.ts` — `readConfig()`, `writeConfig()` and `sanitizeConfig()` (builds a complete typed config from arbitrary input, dropping unknown keys; used on both read and `POST /api/config`)
 - `GET /api/config` — returns current config, unauthenticated (read by the dashboard, admin panel, and Docker healthcheck)
-- `POST /api/config` — requires a valid `daylight_admin` session (see below), validates types, saves, and calls `revalidatePath('/')` to flush ISR cache
+- `POST /api/config` — requires a valid `daylight_admin` session (see below), validates types, saves, and calls `revalidatePath('/', 'layout')` to flush the ISR cache (including the root layout's stock ticker / connectivity flag)
 - In Docker, `config.json` must be mounted as a volume: `-v ./config.json:/app/config.json`
 
 ### Admin panel
@@ -39,7 +39,7 @@ User preferences (location, enabled features, stock symbols) live in `config.jso
 - `/admin` — settings UI (city search, toggles, stock picker)
 - `/admin/login` — password form; password set via `ADMIN_PASSWORD` env var
 - `src/proxy.ts` — Next.js 16 proxy (replaces middleware) protecting `/admin/*` page routes
-- `src/lib/adminSession.ts` — signs/verifies the `daylight_admin` cookie (HMAC over `ADMIN_PASSWORD`, Web Crypto so it works on both the Edge and Node.js runtimes). `proxy.ts` and any mutating API route (`POST /api/config`) both call `isValidAdminSession()` — checking cookie *presence* alone is not sufficient, since page-only middleware doesn't cover `/api/*`.
+- `src/lib/adminSession.ts` — signs/verifies the `daylight_admin` cookie (`<expiry>.<HMAC over ADMIN_PASSWORD>`, 30-day expiry, Web Crypto so it works on both the Edge and Node.js runtimes). `/api/admin/login` rate-limits failed attempts in memory. `proxy.ts` and any mutating API route (`POST /api/config`) both call `isValidAdminSession()` — checking cookie *presence* alone is not sufficient, since page-only middleware doesn't cover `/api/*`.
 
 ### Key architectural decisions
 
